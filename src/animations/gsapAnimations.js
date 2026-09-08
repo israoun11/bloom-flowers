@@ -66,3 +66,47 @@ export function magneticEffect(el, strength = 0.35) {
     el.removeEventListener('mouseleave', handleLeave)
   }
 }
+
+/**
+ * Subtle 3D tilt + lift on hover, for premium card interactions.
+ * Rotates toward the cursor, lifts slightly, and resets on leave.
+ * No-ops on touch devices / reduced motion.
+ */
+export function tiltEffect(el, { max = 10, scale = 1.03, lift = 10, perspective = 900 } = {}) {
+  if (!el || prefersReducedMotion) return () => {}
+  if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return () => {}
+
+  gsap.set(el, { transformPerspective: perspective })
+
+  const rotateX = gsap.quickTo(el, 'rotateX', { duration: 0.6, ease: 'power3.out' })
+  const rotateY = gsap.quickTo(el, 'rotateY', { duration: 0.6, ease: 'power3.out' })
+  const scaleTo = gsap.quickTo(el, 'scale', { duration: 0.6, ease: 'power3.out' })
+  const liftTo = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'power3.out' })
+
+  function handleMove(e) {
+    const rect = el.getBoundingClientRect()
+    const px = (e.clientX - rect.left) / rect.width - 0.5
+    const py = (e.clientY - rect.top) / rect.height - 0.5
+    rotateY(px * max)
+    rotateX(-py * max)
+  }
+  function handleEnter() {
+    scaleTo(scale)
+    liftTo(-lift)
+  }
+  function handleLeave() {
+    rotateX(0)
+    rotateY(0)
+    scaleTo(1)
+    liftTo(0)
+  }
+
+  el.addEventListener('mousemove', handleMove)
+  el.addEventListener('mouseenter', handleEnter)
+  el.addEventListener('mouseleave', handleLeave)
+  return () => {
+    el.removeEventListener('mousemove', handleMove)
+    el.removeEventListener('mouseenter', handleEnter)
+    el.removeEventListener('mouseleave', handleLeave)
+  }
+}

@@ -362,6 +362,57 @@ section {
   background: radial-gradient(ellipse at 50% 20%, #fffdf9 0%, var(--cream) 55%, var(--ivory) 100%);
 }
 
+/* Layered 3D depth stage: three planes (back / mid / fore) sit behind the
+   text at different translateZ + blur amounts, which reads as real depth
+   of field. GSAP drives entrance, mouse parallax and scroll-linked motion
+   on each layer independently. */
+.hero-3d-stage {
+  position: absolute;
+  inset: 0;
+  perspective: 1400px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.depth-layer {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform, filter, opacity;
+}
+
+.depth-back {
+  transform: translateZ(-220px);
+}
+
+.depth-mid {
+  transform: translateZ(-70px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 2vw 4vh;
+}
+
+.depth-fore {
+  transform: translateZ(30px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0;
+}
+
+.hero-side-bouquet {
+  opacity: 0.85;
+}
+
+.hero-side-bouquet.left {
+  margin-bottom: -10px;
+}
+
+.hero-side-bouquet.right {
+  margin-bottom: 30px;
+}
+
 .hero-bg-layer {
   position: absolute;
   border-radius: 50%;
@@ -410,6 +461,19 @@ section {
   color: var(--rose-deep);
 }
 
+/* Line-mask reveal: the outer span clips, the inner span carries the
+   GSAP yPercent transform, so text rises up from behind a hard edge
+   instead of a plain fade. Used for the hero title and section headings. */
+.line-mask {
+  display: block;
+  overflow: hidden;
+}
+
+.line-inner {
+  display: inline-block;
+  will-change: transform;
+}
+
 .hero-sub {
   max-width: 520px;
   margin: 24px auto 0;
@@ -419,6 +483,8 @@ section {
 }
 
 .hero-buttons {
+  position: relative;
+  z-index: 3;
   margin-top: 38px;
   display: flex;
   gap: 18px;
@@ -426,18 +492,14 @@ section {
   flex-wrap: wrap;
 }
 
-.hero-art {
-  position: relative;
-  height: clamp(260px, 40vw, 440px);
-  margin-top: 10px;
-}
-
-.hero-art-inner {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-  will-change: transform;
+@media (max-width: 900px) {
+  .depth-mid,
+  .depth-fore {
+    transform: none;
+  }
+  .hero-side-bouquet {
+    display: none;
+  }
 }
 
 .petal-layer {
@@ -496,11 +558,12 @@ section {
   background: var(--ivory);
   border-radius: 26px;
   overflow: hidden;
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.55s ease;
+  transition: box-shadow 0.55s ease;
+  /* rotation/lift is driven by the tiltEffect() GSAP helper, not CSS,
+     so the two don't fight over the transform property */
 }
 
 .bcard:hover {
-  transform: translateY(-10px);
   box-shadow: 0 30px 60px -24px rgba(44, 38, 32, 0.28);
 }
 
@@ -614,7 +677,13 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.6s ease;
+}
+
+.feel-visual-art {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform, filter, opacity;
 }
 
 .feel-visual-caption {
@@ -665,6 +734,10 @@ section {
   clip-path: inset(0 0 0 0);
 }
 
+.story-media-inner {
+  will-change: transform;
+}
+
 .story-title {
   font-size: clamp(32px, 4.4vw, 46px);
 }
@@ -694,6 +767,54 @@ section {
 
 .finalcta .section-sub {
   margin: 20px auto 40px;
+}
+
+.finalcta-silhouette {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  opacity: 0;
+  filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.finalcta .container {
+  position: relative;
+  z-index: 1;
+}
+
+.cta-button-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.cta-glow {
+  position: absolute;
+  inset: -18px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(206, 142, 146, 0.55) 0%, rgba(206, 142, 146, 0) 70%);
+  animation: glowPulse 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-glow {
+    animation: none;
+  }
 }
 
 footer {

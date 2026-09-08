@@ -12,9 +12,21 @@ const FEELINGS = [
 export default function Feelings() {
   const [active, setActive] = useState(0)
   const visualRef = useRef(null)
+  const panelRef = useRef(null)
 
   useEffect(() => {
-    gsap.fromTo(visualRef.current, { opacity: 0 }, { opacity: 1, duration: 0.55, ease: 'power2.out' })
+    // Blur-to-sharp crossfade for the incoming arrangement, plus a soft
+    // tint shift on the panel background so the whole visual feels alive.
+    gsap.fromTo(
+      visualRef.current,
+      { opacity: 0, scale: 1.08, filter: 'blur(14px)' },
+      { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.7, ease: 'power3.out' }
+    )
+    gsap.to(panelRef.current, {
+      backgroundColor: FEELINGS[active].palette.petalC,
+      duration: 0.7,
+      ease: 'power2.out',
+    })
   }, [active])
 
   return (
@@ -40,8 +52,8 @@ export default function Feelings() {
               </button>
             ))}
           </div>
-          <div className="feel-visual">
-            <div ref={visualRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div className="feel-visual" ref={panelRef}>
+            <div ref={visualRef} className="feel-visual-art">
               <Bouquet palette={FEELINGS[active].palette} width={260} height={300} />
             </div>
             <div className="feel-visual-caption">

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { revealOnScroll } from '../animations/gsapAnimations.js'
+import { gsap, tiltEffect } from '../animations/gsapAnimations.js'
 import Bouquet, { PALETTES } from './Bouquet.jsx'
 
 const ITEMS = [
@@ -10,9 +10,35 @@ const ITEMS = [
 
 export default function Bouquets() {
   const ref = useRef(null)
+  const cardRefs = useRef([])
 
   useEffect(() => {
-    revealOnScroll(ref.current.querySelectorAll('.bcard'), { y: 50, stagger: 0.12 })
+    const ctx = gsap.context(() => {
+      cardRefs.current.forEach((card, i) => {
+        if (!card) return
+        gsap.fromTo(
+          card,
+          { opacity: 0, y: 70, rotateY: i % 2 === 0 ? -14 : 14, scale: 0.92 },
+          {
+            opacity: 1,
+            y: 0,
+            rotateY: 0,
+            scale: 1,
+            duration: 1.1,
+            delay: i * 0.12,
+            ease: 'power4.out',
+            scrollTrigger: { trigger: ref.current, start: 'top 78%' },
+          }
+        )
+      })
+    }, ref)
+
+    const cleanups = cardRefs.current.map((card) => (card ? tiltEffect(card, { max: 8, scale: 1.03, lift: 12 }) : () => {}))
+
+    return () => {
+      ctx.revert()
+      cleanups.forEach((fn) => fn())
+    }
   }, [])
 
   return (
@@ -24,8 +50,13 @@ export default function Bouquets() {
           <p className="section-sub">Little arrangements, big feelings.</p>
         </div>
         <div className="bouquet-grid">
-          {ITEMS.map((it) => (
-            <div className="bcard" key={it.name} data-cursor="hover">
+          {ITEMS.map((it, i) => (
+            <div
+              className="bcard"
+              key={it.name}
+              ref={(el) => (cardRefs.current[i] = el)}
+              data-cursor="hover"
+            >
               <div className="bcard-media">
                 <Bouquet palette={it.palette} width={200} height={220} dense={false} />
                 <div className="bcard-view">View Bouquet →</div>
